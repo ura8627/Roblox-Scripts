@@ -117,11 +117,26 @@ local function disguiseAs(npcModel)
 	clone.Parent = workspace
 	currentDisguise = clone
 
+	-- ===== FEET/GROUND ALIGNMENT FIX =====
+	-- Har model ka size alag hota hai, isliye sirf root.CFrame copy karne se
+	-- bade/chote monster floor mein dhans jate ya hawa mein tairte hain.
+	-- Yahan hum root se "feet" tak ki doori nikaal kar, dono (player aur
+	-- clone) ke feet ko hamesha floor par barabar rakhte hain.
+	local function getBottomY(model)
+		local cf, size = model:GetBoundingBox()
+		return cf.Position.Y - (size.Y / 2)
+	end
+
+	local playerFootOffset = root.Position.Y - getBottomY(char)
+	local cloneFootOffset  = clonePrimary.Position.Y - getBottomY(clone)
+	local yAdjust = cloneFootOffset - playerFootOffset
+	-- =======================================
+
 	-- Har frame: clone ko apne asli character ke root ke sath move karo,
 	-- aur asli character ko sirf apni screen par invisible rakho
 	renderConn = RunService.RenderStepped:Connect(function()
 		if root.Parent and clonePrimary.Parent then
-			clone:SetPrimaryPartCFrame(root.CFrame)
+			clone:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0, yAdjust, 0))
 		end
 		for _, part in ipairs(char:GetDescendants()) do
 			if part:IsA("BasePart") or part:IsA("Decal") then
